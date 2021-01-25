@@ -1,0 +1,172 @@
+import 'package:flutter/material.dart';
+/*import 'package:flutter_blue/flutter_blue.dart';
+import 'package:bluetoothonoff/bluetoothonoff.dart';*/
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+//import 'package:flutter_switch/flutter_switch.dart';
+
+class Toggleswitch extends StatefulWidget {
+  @override
+  _ToggleswitchState createState() => _ToggleswitchState();
+}
+
+class _ToggleswitchState extends State<Toggleswitch> {
+  // FlutterBlue flutterBlue = FlutterBlue.instance;
+  FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
+  BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
+
+  /*bool success = false;
+  BluetoothState adapterStatus;
+  bool turningOnBluetooth = false;
+  bool initialStatus;*/
+  bool isSwitched = false;
+  var textValue = 'Switch is OFF';
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    /*_bluetooth.state.then((state) {
+      setState(() {
+        _bluetoothState = state;
+      });
+    });*/
+    checkblueToothState();
+  }
+
+  Future<void> enableBluetooth() async {
+    _bluetoothState = await _bluetooth.state;
+    if (_bluetoothState == BluetoothState.STATE_OFF) {
+      await _bluetooth.requestEnable();
+      // await getPairedDevices();
+      return true;
+    } else {
+      // await getPairedDevices();
+    }
+    return false;
+  }
+
+  Future<void> disableBluetooth() async {
+    _bluetoothState = await _bluetooth.state;
+    if (_bluetoothState == BluetoothState.STATE_ON) {
+      await _bluetooth.requestDisable();
+      // await getPairedDevices();
+      return true;
+    } else {
+      // await getPairedDevices();
+    }
+    return false;
+  }
+
+  /*@override
+  void initState() {
+    super.initState();
+    /*initialState().then((data) {
+      print("DAta : $data");
+      initialStatus = data;
+    });*/
+    getState().listen((data) {
+      print("Data: $data");
+      adapterStatus = data;
+    });
+  }*/
+
+  /*Future<bool> initialState() async {
+    bool status = await flutterBlue.isOn;
+    return status;
+  }*/
+
+  /*Stream<BluetoothState> getState() {
+    final mystream = flutterBlue.state.asBroadcastStream();
+    return mystream;
+  }*/
+
+  void toggleSwitch(bool value) async {
+    if (isSwitched == false) {
+      print("toogle");
+      enableBluetooth();
+
+      setState(() {
+        isSwitched = true;
+        textValue = 'Switch Button is ON';
+      });
+      print('Switch Button is ON');
+    } else {
+      disableBluetooth();
+      //success = await BluetoothOnOff.turnOffBluetooth;
+      setState(() {
+        isSwitched = false;
+
+        textValue = 'Switch Button is OFF';
+      });
+      print('Switch Button is OFF');
+    }
+  }
+
+  checkblueToothState() {
+    _bluetooth.state.then((state) {
+      setState(() {
+        _bluetoothState = state;
+      });
+    });
+    FlutterBluetoothSerial.instance
+        .onStateChanged()
+        .listen((BluetoothState state) {
+      setState(() {
+        _bluetoothState = state;
+
+        // For retrieving the paired devices list
+        // getPairedDevices();
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          Transform.scale(
+            scale: 2,
+            child: Switch(
+              value: _bluetoothState.isEnabled,
+              activeColor: Colors.blue,
+              activeTrackColor: Colors.yellow,
+              inactiveThumbColor: Colors.redAccent,
+              inactiveTrackColor: Colors.orange,
+              onChanged: (bool value) {
+                future() async {
+                  if (value) {
+                    print("in if $value");
+                    // Enable Bluetooth
+                    await _bluetooth.requestEnable();
+
+                    setState(() {
+                      isSwitched = true;
+                      // textValue = 'Switch Button is ON';
+                    });
+                  } else {
+                    print("in else $value");
+                    // Disable Bluetooth
+                    await _bluetooth.requestDisable();
+                    //_bluetoothState = await _bluetooth.state;
+
+                    setState(() {
+                      isSwitched = false;
+
+                      // textValue = 'Switch Button is OFF';
+                    });
+                  }
+                }
+
+                future().then((_) {
+                  setState(() {});
+                });
+              },
+            ),
+          ),
+          Text(_bluetoothState.toString()),
+        ],
+      ),
+    );
+  }
+}
